@@ -6,6 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		13F1AE452CBB350E001B020F /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 13F1AE442CBB350E001B020F /* libSDL2-2.0.0.dylib */; };
+		13F1AE482CBB3679001B020F /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13F1AE472CBB3679001B020F /* Foundation.framework */; };
+		13F1AE4A2CBB367E001B020F /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13F1AE492CBB367E001B020F /* QuartzCore.framework */; };
+		13F1AE4C2CBB3683001B020F /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13F1AE4B2CBB3683001B020F /* Metal.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		13F1AE372CBB33E8001B020F /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -20,6 +27,10 @@
 
 /* Begin PBXFileReference section */
 		13F1AE392CBB33E8001B020F /* metal-renderer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "metal-renderer"; sourceTree = BUILT_PRODUCTS_DIR; };
+		13F1AE442CBB350E001B020F /* libSDL2-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2-2.0.0.dylib"; path = "../../../../opt/homebrew/Cellar/sdl2/2.30.8/lib/libSDL2-2.0.0.dylib"; sourceTree = "<group>"; };
+		13F1AE472CBB3679001B020F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		13F1AE492CBB367E001B020F /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		13F1AE4B2CBB3683001B020F /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -35,6 +46,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13F1AE4C2CBB3683001B020F /* Metal.framework in Frameworks */,
+				13F1AE4A2CBB367E001B020F /* QuartzCore.framework in Frameworks */,
+				13F1AE482CBB3679001B020F /* Foundation.framework in Frameworks */,
+				13F1AE452CBB350E001B020F /* libSDL2-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -45,6 +60,7 @@
 			isa = PBXGroup;
 			children = (
 				13F1AE3B2CBB33E8001B020F /* metal-renderer */,
+				13F1AE432CBB350E001B020F /* Frameworks */,
 				13F1AE3A2CBB33E8001B020F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -55,6 +71,17 @@
 				13F1AE392CBB33E8001B020F /* metal-renderer */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		13F1AE432CBB350E001B020F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				13F1AE4B2CBB3683001B020F /* Metal.framework */,
+				13F1AE492CBB367E001B020F /* QuartzCore.framework */,
+				13F1AE472CBB3679001B020F /* Foundation.framework */,
+				13F1AE442CBB350E001B020F /* libSDL2-2.0.0.dylib */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -244,20 +271,46 @@
 		13F1AE412CBB33E8001B020F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "metal-renderer/metal-renderer.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = TV26J4ZX8X;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
+				HEADER_SEARCH_PATHS = (
+					/opt/homebrew/Cellar/sdl2/2.30.8/include,
+					"$(PROJECT_DIR)/metal-cpp",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/homebrew/Cellar/sdl2/2.30.8/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Debug;
 		};
 		13F1AE422CBB33E8001B020F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "metal-renderer/metal-renderer.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = TV26J4ZX8X;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
+				HEADER_SEARCH_PATHS = (
+					/opt/homebrew/Cellar/sdl2/2.30.8/include,
+					"$(PROJECT_DIR)/metal-cpp",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/homebrew/Cellar/sdl2/2.30.8/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Release;
 		};
