@@ -7,27 +7,66 @@
 
 #include "Camera.hpp"
 #include <cmath>
+#include <iostream>
 
 Camera::Camera()
-    : position(simd::make_float3(0, 0, -5)),
-      rotation(simd::make_float3(0, 0, 0)) {}
+    : position(simd::make_float3(0, 0, 3)),
+      yaw(-M_PI_2),
+      pitch(0) {
+    updateVectors();
+}
+
+void Camera::moveForward(float delta) {
+    position += front * delta * movementSpeed;
+}
+
+void Camera::moveRight(float delta) {
+    position += right * delta * movementSpeed;
+}
+
+void Camera::rotate(float yawDelta, float pitchDelta) {
+    yaw += yawDelta * mouseSensitivity;
+    pitch += pitchDelta * mouseSensitivity;
+    
+    yaw = std::fmod(yaw, M_PI * 2);
+    if (yaw < 0) yaw += M_PI * 2;
+
+    const float pitchLimit = M_PI_2 - 0.01f;
+    if (pitch > pitchLimit) pitch = pitchLimit;
+    if (pitch < -pitchLimit) pitch = -pitchLimit;
+
+    updateVectors();
+}
+
+
+void Camera::updateVectors() {
+    front = simd::normalize(simd::make_float3(
+        cos(yaw) * cos(pitch),
+        sin(pitch),
+        sin(yaw) * cos(pitch)
+    ));
+
+    right = simd::normalize(simd::cross(front, simd::make_float3(0, 1, 0)));
+    up = simd::normalize(simd::cross(right, front));
+}
 
 simd::float4x4 Camera::getViewMatrix() const {
-    float cx = std::cos(rotation.x), sx = std::sin(rotation.x);
-    float cy = std::cos(rotation.y), sy = std::sin(rotation.y);
-    float cz = std::cos(rotation.z), sz = std::sin(rotation.z);
+    simd::float3 center = position + front;
+    simd::float3 f = simd::normalize(center - position);
+    simd::float3 s = simd::normalize(simd::cross(f, up));
+    simd::float3 u = simd::cross(s, f);
 
-    simd::float4 col0 = simd::make_float4(cy * cz, cx * sz + sx * sy * cz, sx * sz - cx * sy * cz, 0);
-    simd::float4 col1 = simd::make_float4(-cy * sz, cx * cz - sx * sy * sz, sx * cz + cx * sy * sz, 0);
-    simd::float4 col2 = simd::make_float4(sy, -sx * cy, cx * cy, 0);
-    simd::float4 col3 = simd::make_float4(-position.x, -position.y, -position.z, 1);
-
-    return simd::float4x4(col0, col1, col2, col3);
+    return simd::float4x4(
+        simd::make_float4(s.x, u.x, -f.x, 0),
+        simd::make_float4(s.y, u.y, -f.y, 0),
+        simd::make_float4(s.z, u.z, -f.z, 0),
+        simd::make_float4(-simd::dot(s, position), -simd::dot(u, position), simd::dot(f, position), 1)
+    );
 }
 
 simd::float4x4 Camera::getProjectionMatrix() const {
-    float aspect = 900.0f / 660.0f;
-    float fovy = 60.0f * (M_PI / 180.0f);
+    float aspect = 1920.0f / 1080.0f;
+    float fovy = 80.0f * (M_PI / 180.0f);
     float near = 0.1f;
     float far = 100.0f;
 
@@ -37,10 +76,11 @@ simd::float4x4 Camera::getProjectionMatrix() const {
     float zScale = -(far + near) / zRange;
     float wzScale = -2 * far * near / zRange;
 
-    simd::float4 col0 = simd::make_float4(xScale, 0, 0, 0);
-    simd::float4 col1 = simd::make_float4(0, yScale, 0, 0);
-    simd::float4 col2 = simd::make_float4(0, 0, zScale, -1);
-    simd::float4 col3 = simd::make_float4(0, 0, wzScale, 0);
-
-    return simd::float4x4(col0, col1, col2, col3);
+    return simd::float4x4(
+        simd::make_float4(xScale, 0, 0, 0),
+        simd::make_float4(0, yScale, 0, 0),
+        simd::make_float4(0, 0, zScale, -1),
+        simd::make_float4(0, 0, wzScale, 0)
+    );
 }
+

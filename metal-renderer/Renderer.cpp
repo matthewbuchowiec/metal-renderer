@@ -88,7 +88,7 @@ void Renderer::setupDepthStencilState() {
     depthStencilDesc->release();
 }
 
-void Renderer::render(const Scene& scene) {
+void Renderer::render(Scene& scene) {
     CA::MetalDrawable* drawable = metalLayer->nextDrawable();
     
     if (!depthTexture || drawable->texture()->width() != depthTexture->width() || drawable->texture()->height() != depthTexture->height()) {
@@ -132,9 +132,9 @@ void Renderer::render(const Scene& scene) {
     renderEncoder->setVertexBuffer(vertexBuffer, 0, 0);
 
     // Set up uniforms
-    const Camera& camera = scene.getCamera();
-    simd::float4x4 viewMatrix = camera.getViewMatrix();
-    simd::float4x4 projectionMatrix = camera.getProjectionMatrix();
+    Camera& camera = scene.getCamera();
+    auto viewMatrix = camera.getViewMatrix();
+    auto projectionMatrix = camera.getProjectionMatrix();
     simd::float4x4 modelMatrix = scene.getCubeModelMatrix();
 
     simd::float4x4 modelViewProjectionMatrix = matrix_multiply(projectionMatrix, matrix_multiply(viewMatrix, modelMatrix));

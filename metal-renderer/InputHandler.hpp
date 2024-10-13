@@ -8,11 +8,18 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include "Camera.hpp"
 
 class InputHandler {
 public:
     InputHandler();
     ~InputHandler();
 
-    bool processInput();
+    bool processInput(Camera& camera);
+
+private:
+    bool wKeyDown, aKeyDown, sKeyDown, dKeyDown;
+    int mouseX, mouseY;
+    int prevMouseX, prevMouseY;
 };
+

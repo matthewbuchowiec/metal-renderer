@@ -19,7 +19,7 @@ public:
     void update();
 
     const Mesh& getCube() const { return cube; }
-    const Camera& getCamera() const { return camera; }
+    Camera& getCamera() { return camera; }
     const simd::float4x4& getCubeModelMatrix() const { return cubeModelMatrix; }
 
 private:

@@ -18,8 +18,8 @@
 #include "Scene.hpp"
 #include "InputHandler.hpp"
 
-const int SCREEN_WIDTH = 900;
-const int SCREEN_HEIGHT = 660;
+const int SCREEN_WIDTH = 1920;
+const int SCREEN_HEIGHT = 1080;
 
 int main(int argc, char* args[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -45,9 +45,11 @@ int main(int argc, char* args[]) {
 
     scene.initialize();
 
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+
     bool quit = false;
     while (!quit) {
-        quit = inputHandler.processInput();
+        quit = inputHandler.processInput(scene.getCamera());
         scene.update();
         renderer.render(scene);
     }

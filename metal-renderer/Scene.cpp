@@ -13,7 +13,7 @@ Scene::Scene() : cube(createCubeMesh()), camera(), cubeModelMatrix(matrix_identi
 Scene::~Scene() {}
 
 void Scene::initialize() {
-    camera.setPosition({0, 0, 3});
+    
 }
 
 void Scene::update() {
