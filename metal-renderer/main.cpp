@@ -14,9 +14,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_metal.h>
 #include <iostream>
+#include "Renderer.hpp"
+#include "Scene.hpp"
+#include "InputHandler.hpp"
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 900;
+const int SCREEN_HEIGHT = 660;
 
 int main(int argc, char* args[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -36,47 +39,19 @@ int main(int argc, char* args[]) {
     SDL_MetalView metalView = SDL_Metal_CreateView(window);
     CA::MetalLayer* metalLayer = (CA::MetalLayer*)SDL_Metal_GetLayer(metalView);
 
-    MTL::Device* device = MTL::CreateSystemDefaultDevice();
-    metalLayer->setDevice(device);
-    metalLayer->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm);
+    Renderer renderer(metalLayer);
+    Scene scene;
+    InputHandler inputHandler;
 
-    MTL::CommandQueue* commandQueue = device->newCommandQueue();
+    scene.initialize();
 
-    SDL_Event e;
     bool quit = false;
     while (!quit) {
-        while (SDL_PollEvent(&e) != 0) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            }
-        }
-
-        // Get the next drawable
-        CA::MetalDrawable* drawable = metalLayer->nextDrawable();
-
-        // Create a render pass descriptor
-        MTL::RenderPassDescriptor* renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
-        renderPassDescriptor->colorAttachments()->object(0)->setTexture(drawable->texture());
-        renderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
-        renderPassDescriptor->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(0.0, 0.5, 1.0, 1.0)); // Blue color
-
-        // Create a command buffer and encoder
-        MTL::CommandBuffer* commandBuffer = commandQueue->commandBuffer();
-        MTL::RenderCommandEncoder* renderEncoder = commandBuffer->renderCommandEncoder(renderPassDescriptor);
-
-        // End encoding and commit
-        renderEncoder->endEncoding();
-        commandBuffer->presentDrawable(drawable);
-        commandBuffer->commit();
-
-        // Release resources
-        renderPassDescriptor->release();
-        renderEncoder->release();
+        quit = inputHandler.processInput();
+        scene.update();
+        renderer.render(scene);
     }
 
-    // Cleanup
-    commandQueue->release();
-    device->release();
     SDL_Metal_DestroyView(metalView);
     SDL_DestroyWindow(window);
     SDL_Quit();
