@@ -9,7 +9,6 @@
 #include <iostream>
 
 ShaderManager::ShaderManager(MTL::Device* device) : device(device) {
-    NS::Error* error = nullptr;
     defaultLibrary = device->newDefaultLibrary();
     if (!defaultLibrary) {
         std::cerr << "Failed to create default library" << std::endl;

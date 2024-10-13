@@ -17,10 +17,7 @@ void Scene::initialize() {
 }
 
 void Scene::update() {
-    // Increment the rotation angle
-    cubeRotationAngle += 0.01f; // Adjust this value to change rotation speed
-
-    // Create a rotation matrix around the Y-axis
+    cubeRotationAngle += 0.01f;
     simd::float4x4 rotationMatrix = simd::float4x4(
         simd::make_float4(cos(cubeRotationAngle), 0, sin(cubeRotationAngle), 0),
                                                    simd::make_float4(0, 1, 0, 0),
@@ -28,7 +25,6 @@ void Scene::update() {
                                                    simd::make_float4(0, 0, 0, 1)
     );
 
-    // Update the cube's model matrix
     cubeModelMatrix = rotationMatrix;
 }
 

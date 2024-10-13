@@ -14,7 +14,9 @@ Renderer::Renderer(CA::MetalLayer* metalLayer)
       device(MTL::CreateSystemDefaultDevice()),
       commandQueue(device->newCommandQueue()),
       resourceManager(device),
-      shaderManager(device) {
+      shaderManager(device),
+      depthTexture(nullptr) {
+    
     metalLayer->setDevice(device);
     metalLayer->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm);
     createPipelineState();
@@ -22,20 +24,22 @@ Renderer::Renderer(CA::MetalLayer* metalLayer)
 }
 
 Renderer::~Renderer() {
+    depthStencilState->release();
     pipelineState->release();
     commandQueue->release();
     device->release();
+    depthTexture->release();
 }
 
 MTL::VertexDescriptor* Renderer::createVertexDescriptor() {
     MTL::VertexDescriptor* vertexDescriptor = MTL::VertexDescriptor::alloc()->init();
 
-    // Position
+    // Position attribute
     vertexDescriptor->attributes()->object(0)->setFormat(MTL::VertexFormatFloat3);
     vertexDescriptor->attributes()->object(0)->setOffset(0);
     vertexDescriptor->attributes()->object(0)->setBufferIndex(0);
 
-    // Color
+    // Color attribute
     vertexDescriptor->attributes()->object(1)->setFormat(MTL::VertexFormatFloat4);
     vertexDescriptor->attributes()->object(1)->setOffset(sizeof(float) * 3);
     vertexDescriptor->attributes()->object(1)->setBufferIndex(0);
@@ -54,7 +58,8 @@ void Renderer::createPipelineState() {
     pipelineStateDescriptor->setFragmentFunction(fragmentFunction);
     pipelineStateDescriptor->colorAttachments()->object(0)->setPixelFormat(metalLayer->pixelFormat());
     pipelineStateDescriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth32Float);
-    pipelineStateDescriptor->setVertexDescriptor(createVertexDescriptor());
+    MTL::VertexDescriptor* vertexDescriptor = createVertexDescriptor();
+    pipelineStateDescriptor->setVertexDescriptor(vertexDescriptor);
 
     NS::Error* error = nullptr;
     pipelineState = device->newRenderPipelineState(pipelineStateDescriptor, &error);
@@ -62,12 +67,18 @@ void Renderer::createPipelineState() {
         std::cerr << "Failed to create pipeline state: " << error->localizedDescription()->utf8String() << std::endl;
     }
 
+    vertexDescriptor->release();
     pipelineStateDescriptor->release();
+    
     vertexFunction->release();
     fragmentFunction->release();
 }
 
 void Renderer::setupDepthStencilState() {
+    if (depthStencilState) {
+        depthStencilState->release();
+    }
+    
     MTL::DepthStencilDescriptor* depthStencilDesc = MTL::DepthStencilDescriptor::alloc()->init();
     depthStencilDesc->setDepthCompareFunction(MTL::CompareFunction::CompareFunctionLess);
     depthStencilDesc->setDepthWriteEnabled(true);
@@ -80,20 +91,27 @@ void Renderer::setupDepthStencilState() {
 void Renderer::render(const Scene& scene) {
     CA::MetalDrawable* drawable = metalLayer->nextDrawable();
     
-    MTL::TextureDescriptor* depthTextureDescriptor = MTL::TextureDescriptor::texture2DDescriptor(
+    if (!depthTexture || drawable->texture()->width() != depthTexture->width() || drawable->texture()->height() != depthTexture->height()) {
+        if (depthTexture) {
+            depthTexture->release();
+        }
+
+        MTL::TextureDescriptor* depthTextureDescriptor = MTL::TextureDescriptor::texture2DDescriptor(
             MTL::PixelFormat::PixelFormatDepth32Float,
             drawable->texture()->width(),
             drawable->texture()->height(),
             false);
-    depthTextureDescriptor->setUsage(MTL::TextureUsageRenderTarget);
-    depthTextureDescriptor->setStorageMode(MTL::StorageModePrivate);
+        depthTextureDescriptor->setUsage(MTL::TextureUsageRenderTarget);
+        depthTextureDescriptor->setStorageMode(MTL::StorageModePrivate);
 
-    MTL::Texture* depthTexture = device->newTexture(depthTextureDescriptor);
+        depthTexture = device->newTexture(depthTextureDescriptor);
+        depthTextureDescriptor->release();
+    }
 
     MTL::RenderPassDescriptor* renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     renderPassDescriptor->colorAttachments()->object(0)->setTexture(drawable->texture());
     renderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadAction::LoadActionClear);
-    renderPassDescriptor->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(0.1, 0.1, 0.1, 1.0));
+    renderPassDescriptor->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(0.125, 0.125, 0.125, 1.0));
 
     renderPassDescriptor->setDepthAttachment(renderPassDescriptor->depthAttachment());
     renderPassDescriptor->depthAttachment()->setTexture(depthTexture);
@@ -106,10 +124,10 @@ void Renderer::render(const Scene& scene) {
     renderEncoder->setRenderPipelineState(pipelineState);
     renderEncoder->setDepthStencilState(depthStencilState);
 
-    // Set up vertex and index buffers
+    // Get vertex and index buffers from ResourceManager
     const Mesh& cube = scene.getCube();
-    MTL::Buffer* vertexBuffer = resourceManager.createVertexBuffer(cube.getVertices());
-    MTL::Buffer* indexBuffer = resourceManager.createIndexBuffer(cube.getIndices());
+    MTL::Buffer* vertexBuffer = resourceManager.getVertexBuffer(cube);
+    MTL::Buffer* indexBuffer = resourceManager.getIndexBuffer(cube);
 
     renderEncoder->setVertexBuffer(vertexBuffer, 0, 0);
 
@@ -134,9 +152,10 @@ void Renderer::render(const Scene& scene) {
     renderEncoder->endEncoding();
     commandBuffer->presentDrawable(drawable);
     commandBuffer->commit();
-
+    
+    commandBuffer->release();
+    renderEncoder->release();
     renderPassDescriptor->release();
-    vertexBuffer->release();
-    indexBuffer->release();
-    depthStencilState->release();
+    drawable->release();
 }
+

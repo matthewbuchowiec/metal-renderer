@@ -26,7 +26,7 @@ simd::float4x4 Camera::getViewMatrix() const {
 }
 
 simd::float4x4 Camera::getProjectionMatrix() const {
-    float aspect = 640.0f / 480.0f; // Adjust this based on your window size
+    float aspect = 900.0f / 660.0f;
     float fovy = 60.0f * (M_PI / 180.0f);
     float near = 0.1f;
     float far = 100.0f;

@@ -21,10 +21,8 @@ bool InputHandler::processInput() {
                 switch (event.key.keysym.sym) {
                     case SDLK_ESCAPE:
                         return true;
-                    // Add more key handling here
                 }
                 break;
-            // Add mouse handling here if needed
         }
     }
     return false;
