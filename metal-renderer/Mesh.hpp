@@ -11,8 +11,9 @@
 #include <simd/simd.h>
 
 struct Vertex {
-    simd::float3 position;
+    simd::float4 position;
     simd::float4 color;
+    simd::float3 normal;
 };
 
 class Mesh {

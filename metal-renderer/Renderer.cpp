@@ -34,15 +34,19 @@ Renderer::~Renderer() {
 MTL::VertexDescriptor* Renderer::createVertexDescriptor() {
     MTL::VertexDescriptor* vertexDescriptor = MTL::VertexDescriptor::alloc()->init();
 
-    // Position attribute
-    vertexDescriptor->attributes()->object(0)->setFormat(MTL::VertexFormatFloat3);
+    // Position attribute (now float4)
+    vertexDescriptor->attributes()->object(0)->setFormat(MTL::VertexFormatFloat4);
     vertexDescriptor->attributes()->object(0)->setOffset(0);
     vertexDescriptor->attributes()->object(0)->setBufferIndex(0);
 
     // Color attribute
     vertexDescriptor->attributes()->object(1)->setFormat(MTL::VertexFormatFloat4);
-    vertexDescriptor->attributes()->object(1)->setOffset(sizeof(float) * 3);
+    vertexDescriptor->attributes()->object(1)->setOffset(sizeof(float) * 4);
     vertexDescriptor->attributes()->object(1)->setBufferIndex(0);
+
+    // Normal attribute
+    vertexDescriptor->attributes()->object(2)->setFormat(MTL::VertexFormatFloat3);
+    vertexDescriptor->attributes()->object(2)->setOffset(sizeof(float) * 8);
 
     vertexDescriptor->layouts()->object(0)->setStride(sizeof(Vertex));
 
@@ -75,10 +79,7 @@ void Renderer::createPipelineState() {
 }
 
 void Renderer::setupDepthStencilState() {
-    if (depthStencilState) {
-        depthStencilState->release();
-    }
-    
+
     MTL::DepthStencilDescriptor* depthStencilDesc = MTL::DepthStencilDescriptor::alloc()->init();
     depthStencilDesc->setDepthCompareFunction(MTL::CompareFunction::CompareFunctionLess);
     depthStencilDesc->setDepthWriteEnabled(true);
@@ -131,15 +132,24 @@ void Renderer::render(Scene& scene) {
 
     renderEncoder->setVertexBuffer(vertexBuffer, 0, 0);
 
-    // Set up uniforms
     Camera& camera = scene.getCamera();
     auto viewMatrix = camera.getViewMatrix();
     auto projectionMatrix = camera.getProjectionMatrix();
     simd::float4x4 modelMatrix = scene.getCubeModelMatrix();
 
     simd::float4x4 modelViewProjectionMatrix = matrix_multiply(projectionMatrix, matrix_multiply(viewMatrix, modelMatrix));
+    simd::float4x4 normalMatrix = scene.getNormalMatrix();
 
-    renderEncoder->setVertexBytes(&modelViewProjectionMatrix, sizeof(modelViewProjectionMatrix), 1);
+    struct Uniforms {
+        simd::float4x4 modelViewProjectionMatrix;
+        simd::float4x4 normalMatrix;
+    };
+
+    Uniforms uniforms;
+    uniforms.modelViewProjectionMatrix = modelViewProjectionMatrix;
+    uniforms.normalMatrix = normalMatrix;
+
+    renderEncoder->setVertexBytes(&uniforms, sizeof(uniforms), 1);
     renderEncoder->setFrontFacingWinding(MTL::Winding::WindingClockwise);
     renderEncoder->setCullMode(MTL::CullMode::CullModeBack);
 
