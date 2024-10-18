@@ -32,6 +32,12 @@ private:
     MTL::RenderPipelineState* pipelineState;
     MTL::DepthStencilState* depthStencilState;
     MTL::Texture* depthTexture;
+    
+    struct Uniforms {
+        simd::float4x4 modelViewProjectionMatrix;
+        simd::float4x4 modelMatrix;
+        simd::float4x4 normalMatrix;
+    };
 
     MTL::VertexDescriptor* createVertexDescriptor();
     void createPipelineState();

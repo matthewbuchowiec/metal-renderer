@@ -132,21 +132,18 @@ void Renderer::render(Scene& scene) {
 
     renderEncoder->setVertexBuffer(vertexBuffer, 0, 0);
 
+    // Set up uniforms
     Camera& camera = scene.getCamera();
     auto viewMatrix = camera.getViewMatrix();
     auto projectionMatrix = camera.getProjectionMatrix();
     simd::float4x4 modelMatrix = scene.getCubeModelMatrix();
-
     simd::float4x4 modelViewProjectionMatrix = matrix_multiply(projectionMatrix, matrix_multiply(viewMatrix, modelMatrix));
     simd::float4x4 normalMatrix = scene.getNormalMatrix();
 
-    struct Uniforms {
-        simd::float4x4 modelViewProjectionMatrix;
-        simd::float4x4 normalMatrix;
-    };
-
     Uniforms uniforms;
+
     uniforms.modelViewProjectionMatrix = modelViewProjectionMatrix;
+    uniforms.modelMatrix = modelMatrix;
     uniforms.normalMatrix = normalMatrix;
 
     renderEncoder->setVertexBytes(&uniforms, sizeof(uniforms), 1);
